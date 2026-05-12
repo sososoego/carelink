@@ -14,6 +14,7 @@ import {
 import { useState } from 'react';
 import client from '../../api/client';
 import { Caregiver } from '../../types';
+import MatchRequestModal from '../../components/MatchRequestModal';
 
 const REGIONS = [
   '서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시',
@@ -227,65 +228,6 @@ function InfoBadge({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MatchRequestModal({ caregiver, onClose }: { caregiver: Caregiver; onClose: () => void }) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async () => {
-    if (!isValidDate(startDate) || !isValidDate(endDate)) {
-      Alert.alert('오류', '날짜를 YYYY-MM-DD 형식으로 입력해주세요.');
-      return;
-    }
-    if (startDate > endDate) {
-      Alert.alert('오류', '시작일이 종료일보다 늦을 수 없습니다.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await client.post('/matches', { caregiver_id: caregiver.id, start_date: startDate, end_date: endDate });
-      Alert.alert('완료', `${caregiver.name} 간병인에게 매칭 요청을 보냈습니다.`, [
-        { text: '확인', onPress: onClose },
-      ]);
-    } catch (e: any) {
-      Alert.alert('오류', e.response?.data?.error ?? '요청에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Modal visible transparent animationType='slide'>
-      <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={onClose} />
-      <View style={[styles.modalSheet, matchStyles.sheet]}>
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalTitle}>매칭 요청</Text>
-          <TouchableOpacity onPress={onClose}><Text style={styles.modalClose}>닫기</Text></TouchableOpacity>
-        </View>
-        <View style={matchStyles.body}>
-          <Text style={matchStyles.caregiverName}>{caregiver.name} 간병인</Text>
-          <Text style={styles.label}>간병 시작일</Text>
-          <TextInput style={styles.input} placeholder='YYYY-MM-DD' value={startDate}
-            onChangeText={(t) => setStartDate(autoHyphen(t))} keyboardType='numeric' maxLength={10} />
-          <Text style={styles.label}>간병 종료일</Text>
-          <TextInput style={styles.input} placeholder='YYYY-MM-DD' value={endDate}
-            onChangeText={(t) => setEndDate(autoHyphen(t))} keyboardType='numeric' maxLength={10} />
-          <TouchableOpacity
-            style={[matchStyles.submitButton, (!startDate || !endDate || loading) && styles.buttonDisabled]}
-            onPress={handleSubmit}
-            disabled={!startDate || !endDate || loading}
-          >
-            {loading
-              ? <ActivityIndicator color='#fff' />
-              : <Text style={matchStyles.submitText}>요청 보내기</Text>
-            }
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { padding: 20, paddingBottom: 48 },
@@ -313,14 +255,6 @@ const styles = StyleSheet.create({
   pickerItemSelected: { backgroundColor: '#EBF5FB' },
   pickerItemText: { fontSize: 16, color: '#333' },
   pickerItemTextSelected: { color: '#2E86AB', fontWeight: 'bold' },
-});
-
-const matchStyles = StyleSheet.create({
-  sheet: { maxHeight: '50%' },
-  body: { padding: 20 },
-  caregiverName: { fontSize: 16, fontWeight: 'bold', color: '#2E86AB', marginBottom: 8 },
-  submitButton: { backgroundColor: '#2E86AB', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 24 },
-  submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
 
 const cardStyles = StyleSheet.create({
