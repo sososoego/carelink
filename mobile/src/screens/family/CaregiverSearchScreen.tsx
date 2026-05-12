@@ -52,7 +52,7 @@ export default function CaregiverSearchScreen() {
 
   useEffect(() => {
     fetchCaregivers();
-  }, [fetchCaregivers]);
+  }, []); // 최초 1회만 로드, 이후 검색 버튼으로 수동 실행
 
   const resetFilters = () => {
     setRegion('');
@@ -118,6 +118,9 @@ export default function CaregiverSearchScreen() {
               />
             </View>
           </View>
+          <TouchableOpacity style={styles.searchButton} onPress={() => fetchCaregivers()}>
+            <Text style={styles.searchButtonText}>검색</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -334,6 +337,8 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', gap: 12 },
   filterHalf: { flex: 1 },
   filterInput: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 15 },
+  searchButton: { backgroundColor: '#2E86AB', borderRadius: 8, padding: 14, alignItems: 'center', marginTop: 16 },
+  searchButtonText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
   listContent: { padding: 12, gap: 12 },
   emptyContainer: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },

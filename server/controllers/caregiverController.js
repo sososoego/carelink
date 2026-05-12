@@ -51,6 +51,14 @@ const getRecommended = async (req, res) => {
     params.push(Number(max_hourly_rate));
     query += ` AND cp.hourly_rate <= $${params.length}`;
   }
+  if (start_date && end_date) {
+    params.push(start_date, end_date);
+    query += ` AND cp.user_id NOT IN (
+      SELECT caregiver_id FROM match_requests
+      WHERE status IN ('pending', 'accepted')
+      AND start_date <= $${params.length} AND end_date >= $${params.length - 1}
+    )`;
+  }
 
   query += ' ORDER BY cp.rating DESC LIMIT 5';
 

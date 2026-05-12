@@ -13,7 +13,7 @@ export default function CaregiverHomeScreen({ navigation }: any) {
       clearNewUser();
       navigation.navigate('RegisterProfile');
     }
-  }, [isNewUser]);
+  }, [isNewUser, clearNewUser, navigation]);
 
   return (
     <View style={styles.container}>
