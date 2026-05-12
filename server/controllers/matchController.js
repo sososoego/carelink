@@ -4,6 +4,14 @@ const createMatch = async (req, res) => {
   const familyId = req.user.id;
   const { caregiver_id, start_date, end_date } = req.body;
 
+  const duplicate = await pool.query(
+    `SELECT id FROM match_requests WHERE family_id=$1 AND caregiver_id=$2 AND status='pending'`,
+    [familyId, caregiver_id]
+  );
+  if (duplicate.rows.length > 0) {
+    return res.status(409).json({ error: '이미 대기 중인 매칭 요청이 있습니다.' });
+  }
+
   const result = await pool.query(
     `INSERT INTO match_requests (family_id, caregiver_id, start_date, end_date)
      VALUES ($1, $2, $3, $4) RETURNING *`,
