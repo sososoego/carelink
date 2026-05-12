@@ -12,6 +12,8 @@ CREATE TABLE users (
 CREATE TABLE caregiver_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  gender VARCHAR(10),
+  birth_date DATE,
   experience INT DEFAULT 0,
   certifications TEXT[],
   regions TEXT[],
