@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useState } from 'react';
 import client from '../api/client';
@@ -88,74 +89,74 @@ export default function MatchRequestModal({ caregiver, onClose }: Props) {
   };
 
   return (
-    <>
-      <Modal visible transparent animationType='slide'>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>매칭 요청</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Text style={styles.close}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.body}>
-            <Text style={styles.caregiverName}>{caregiver.name} 간병인</Text>
-
-            <Text style={styles.label}>간병 시작일</Text>
-            <View style={styles.dateRow}>
-              <DateButton field='startYear' value={startYear} placeholder='연도' onPress={setActivePicker} />
-              <DateButton field='startMonth' value={startMonth ? `${startMonth}월` : ''} placeholder='월' onPress={setActivePicker} />
-              <DateButton field='startDay' value={startDay ? `${startDay}일` : ''} placeholder='일' onPress={setActivePicker} />
-            </View>
-
-            <Text style={styles.label}>간병 종료일</Text>
-            <View style={styles.dateRow}>
-              <DateButton field='endYear' value={endYear} placeholder='연도' onPress={setActivePicker} />
-              <DateButton field='endMonth' value={endMonth ? `${endMonth}월` : ''} placeholder='월' onPress={setActivePicker} />
-              <DateButton field='endDay' value={endDay ? `${endDay}일` : ''} placeholder='일' onPress={setActivePicker} />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.submitButton, (!isFormValid || loading) && styles.submitDisabled]}
-              onPress={handleSubmit}
-              disabled={!isFormValid || loading}
-            >
-              {loading
-                ? <ActivityIndicator color='#fff' />
-                : <Text style={styles.submitText}>요청 보내기</Text>
-              }
-            </TouchableOpacity>
-          </View>
+    <Modal visible transparent animationType='slide'>
+      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={activePicker ? () => setActivePicker(null) : onClose} />
+      <View style={styles.sheet}>
+        <View style={styles.header}>
+          <Text style={styles.title}>매칭 요청</Text>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.close}>닫기</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
+        <View style={styles.body}>
+          <Text style={styles.caregiverName}>{caregiver.name} 간병인</Text>
 
-      <Modal visible={activePicker !== null} transparent animationType='slide'>
-        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setActivePicker(null)} />
-        <View style={styles.pickerSheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>{activePicker ? PICKER_LABEL[activePicker] : ''}</Text>
-            <TouchableOpacity onPress={() => setActivePicker(null)}>
-              <Text style={styles.close}>닫기</Text>
-            </TouchableOpacity>
+          <Text style={styles.label}>간병 시작일</Text>
+          <View style={styles.dateRow}>
+            <DateButton field='startYear' value={startYear} placeholder='연도' onPress={setActivePicker} />
+            <DateButton field='startMonth' value={startMonth ? `${startMonth}월` : ''} placeholder='월' onPress={setActivePicker} />
+            <DateButton field='startDay' value={startDay ? `${startDay}일` : ''} placeholder='일' onPress={setActivePicker} />
           </View>
-          <FlatList
-            data={activePicker ? PICKER_DATA[activePicker] : []}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => {
-              const selected = activePicker ? values[activePicker] === item : false;
-              return (
-                <TouchableOpacity
-                  style={[styles.pickerItem, selected && styles.pickerItemSelected]}
-                  onPress={() => handlePickerSelect(item)}
-                >
-                  <Text style={[styles.pickerItemText, selected && styles.pickerItemTextSelected]}>{item}</Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
+
+          <Text style={styles.label}>간병 종료일</Text>
+          <View style={styles.dateRow}>
+            <DateButton field='endYear' value={endYear} placeholder='연도' onPress={setActivePicker} />
+            <DateButton field='endMonth' value={endMonth ? `${endMonth}월` : ''} placeholder='월' onPress={setActivePicker} />
+            <DateButton field='endDay' value={endDay ? `${endDay}일` : ''} placeholder='일' onPress={setActivePicker} />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.submitButton, (!isFormValid || loading) && styles.submitDisabled]}
+            onPress={handleSubmit}
+            disabled={!isFormValid || loading}
+          >
+            {loading
+              ? <ActivityIndicator color='#fff' />
+              : <Text style={styles.submitText}>요청 보내기</Text>
+            }
+          </TouchableOpacity>
         </View>
-      </Modal>
-    </>
+      </View>
+
+      {/* 피커 — 같은 Modal 내부에 절대 위치로 렌더링 (iOS 중첩 Modal 미지원 우회) */}
+      {activePicker !== null && (
+        <>
+          <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPress={() => setActivePicker(null)} />
+          <View style={styles.pickerSheet}>
+            <View style={styles.header}>
+              <Text style={styles.title}>{PICKER_LABEL[activePicker]}</Text>
+              <TouchableOpacity onPress={() => setActivePicker(null)}>
+                <Text style={styles.close}>닫기</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView>
+              {PICKER_DATA[activePicker].map((item) => {
+                const selected = values[activePicker] === item;
+                return (
+                  <TouchableOpacity
+                    key={item}
+                    style={[styles.pickerItem, selected && styles.pickerItemSelected]}
+                    onPress={() => handlePickerSelect(item)}
+                  >
+                    <Text style={[styles.pickerItemText, selected && styles.pickerItemTextSelected]}>{item}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </>
+      )}
+    </Modal>
   );
 }
 
@@ -178,7 +179,8 @@ function DateButton({ field, value, placeholder, onPress }: {
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' },
   sheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16 },
-  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '45%' },
+  pickerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
+  pickerSheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '45%' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
   title: { fontSize: 16, fontWeight: 'bold', color: '#333' },
   close: { fontSize: 14, color: '#2E86AB' },
